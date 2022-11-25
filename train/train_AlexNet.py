@@ -7,10 +7,14 @@ import numpy as np
 import argparse
 import os
 from torch.utils.data import DataLoader
-from dataset import KittiDatasetTrain, KittiDatasetTest
-from vgg import VGGNet
-from fcn import FCN8s
-from utils import save_inference_samples, get_test_paths
+
+import sys 
+sys.path.append('..')
+from models.backbone.AlexNet import AlexNet
+from models.FCN.fcn8 import FCN8s
+from dataset.dataset import KittiDatasetTrain, KittiDatasetTest
+from inference.utils import save_inference_samples
+from dataset.utils import get_test_paths
 
 np.random.seed(1234)
 
@@ -39,8 +43,8 @@ args = parser.parse_args()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(n_epoch, trainloader):
-    vgg_model = VGGNet(model=args.model, requires_grad=True)
-    model = FCN8s(pretrained_net=vgg_model, n_class=args.n_class)
+    alex_net = AlexNet().initialise(requires_grad=True)
+    model = FCN8s(pretrained_net=alex_net, n_class=args.n_class)
     model = model.to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
                                 momentum=args.momentum, weight_decay=args.weight_decay)
@@ -54,8 +58,6 @@ def train(n_epoch, trainloader):
             images = images.float()
             labels = sample['label']
             labels = labels.float()
-            # images = Variable(images.cuda())
-            # labels = Variable(labels.cuda(), requires_grad=False)
 
             optimizer.zero_grad()
             output = model(images)            
