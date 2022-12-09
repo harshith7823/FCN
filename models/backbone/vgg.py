@@ -1,6 +1,8 @@
-# adapted from https://github.com/pochih/FCN-pytorch
 import torchvision.models as models
 from utils import make_layers
+import torch
+import torch.nn as nn
+
 
 ranges = {
     'vgg11': ((0, 3), (3, 6),  (6, 11),  (11, 16), (16, 21)),
@@ -42,3 +44,19 @@ class VGGNet(models.VGG):
                 x = self.features[layer](x)
             output["x%d"%(idx+1)] = x
         return output
+
+    def make_layers(cfg, batch_norm=False):    
+        layers = []
+        in_channels = 3
+        for v in cfg:
+            if v == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            else:
+                conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+                if batch_norm:
+                    layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+                else:
+                    layers += [conv2d, nn.ReLU(inplace=True)]
+                in_channels = v
+        return nn.Sequential(*layers)
+
