@@ -51,5 +51,17 @@ def gen_test_output(n_class, testloader, model, test_folder):
             yield test_paths[i], output
 
 
+def mean_pixel_accuracy(pixel_correct, pixel_labeled):
+    mean_pixel_accuracy = 1.0 * np.sum(pixel_correct) / (np.spacing(1) + np.sum(pixel_labeled))
+    return mean_pixel_accuracy 
+
+def compute_IoU(y_pred_batch, y_true_batch):
+    return np.mean(np.asarray([pixelAccuracy(y_pred_batch[i], y_true_batch[i]) for i in range(len(y_true_batch))])) 
+
+def pixel_accuracy(y_pred, y_true, N_CLASSES):
+    y_pred = np.argmax(np.reshape(y_pred,[N_CLASSES,img_rows,img_cols]),axis=0)
+    y_true = np.argmax(np.reshape(y_true,[N_CLASSES,img_rows,img_cols]),axis=0)
+    y_pred = y_pred * (y_true>0)
+    return 1.0 * np.sum((y_pred==y_true)*(y_true>0)) /  np.sum(y_true>0)
 
 
